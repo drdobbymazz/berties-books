@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bertie's Books - Available Titles</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .book-list { list-style: none; padding: 0; }
+        .book-item {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .book-name { font-weight: bold; }
+        .book-price { color: green; }
+    </style>
+</head>
+<body>
+
+    <h1>Available Books</h1>
+
+    <% if (availableBooks && availableBooks.length > 0) { %>
+        <ul class="book-list">
+            <% availableBooks.forEach(function(book) { %>
+                <li class="book-item">
+                    <span class="book-name"><%= book.name %></span>
+                    <span class="book-price">$<%= parseFloat(book.price).toFixed(2) %></span>
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>No books are currently available.</p>
+    <% } %>
+
+</body>
+</html>
