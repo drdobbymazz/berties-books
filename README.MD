@@ -17,7 +17,7 @@ This application uses the `dotenv` module to secure sensitive database credentia
 
 Instead of storing database credentials in the code (which would expose them if the repository is public), we use environment variables defined in a `.env` file:
 
-- **`.env` file**: Contains your actual credentials (e.g., `DB_PASSWORD=qwertyuiop`). This file is **never committed** to version control.
+- **`.env` file**: Contains credentials. This file is **never committed** to version control.
 - **`.env.example` file**: A template showing which environment variables are needed. This **is committed** to the repository so other developers know what to set up.
 - **`.gitignore`**: Contains `.env` so Git will ignore it and prevent accidental commits of sensitive data.
 
