@@ -3,14 +3,47 @@
   <head>
     <title>Register for <%=shopData.shopName%></title>
     <link rel="stylesheet"  type="text/css" href="/main.css" />
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      .register-form { background:#f4f4f4; padding:20px; border-radius:8px; max-width:480px; }
+      .form-group { margin-bottom:12px; }
+      label { display:block; font-weight:bold; margin-bottom:6px; }
+      input[type="text"], input[type="email"], input[type="password"] { width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; }
+      input[type="submit"] { background:#007bff; color:white; padding:10px 16px; border:none; border-radius:4px; cursor:pointer; }
+      input[type="submit"]:hover { background:#0056b3; }
+    </style>
   </head>
   <body>
     <h1>Register for <%=shopData.shopName%></h1>
-    <form method="POST" action="registered">
-        <p>First name: <input id="first" type="text" name="first" /></p>
-        <p>Last name: <input id="last" type="text" name="last" /></p>
-        <p>Email: <input id="email" type="email" name="email" /></p>
+    <div class="register-form">
+      <form method="POST" action="registered">
+        <div class="form-group">
+          <label for="first">First name</label>
+          <input id="first" type="text" name="first" required />
+        </div>
+
+        <div class="form-group">
+          <label for="last">Last name</label>
+          <input id="last" type="text" name="last" required />
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input id="username" type="text" name="username" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" name="email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" type="password" name="password" required minlength="6" />
+        </div>
+
         <input type="submit" value="Register" />
       </form>
+    </div>
   </body>
 </html>
