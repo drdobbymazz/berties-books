@@ -3,7 +3,10 @@ var express = require ('express')
 var ejs = require('ejs')
 const path = require('path')
 var mysql = require('mysql2');
+var session = require ('express-session');
+const expressSanitizer = require('express-sanitizer');
 
+// Create an input sanitizer
 // Load environment variables from .env file
 require('dotenv').config()
 
@@ -16,6 +19,9 @@ app.set('view engine', 'ejs')
 
 // Set up the body parser 
 app.use(express.urlencoded({ extended: true }))
+
+// Create an input sanitizer (must come after body parser so it can read req.body)
+app.use(expressSanitizer());
 
 // Set up public folder (for css and static js)
 app.use(express.static(path.join(__dirname, 'public')))
@@ -34,6 +40,17 @@ const db = mysql.createPool({
     queueLimit: 0,
 });
 global.db = db;
+
+// Create a session
+app.use(session({
+    secret: 'somerandomstuff',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        expires: 600000
+    }
+}))
+
 
 
 // Load the route handlers

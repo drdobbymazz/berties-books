@@ -3,13 +3,46 @@ const express = require("express")
 const router = express.Router()
 const bcrypt = require('bcrypt')
 const saltRounds = 10
+const { check, validationResult } = require('express-validator');
+
+const redirectLogin = (req, res, next) => {
+    if (!req.session.userId ) {
+        res.redirect('/users/login') // redirect to the login page
+        } else { 
+                next (); // move to the next middleware function
+        } 
+}
 
 
 router.get('/register', function (req, res, next) {
-    res.render('register.ejs')
+    // Render register page with placeholders for errors and previous form data
+    res.render('register', { errors: null, formData: {} })
 })
 
-router.post('/registered', function (req, res, next) {
+router.post('/registered',
+                 [
+                  check('email').isEmail().withMessage('Please enter a valid email address').normalizeEmail(),
+                  check('username').isLength({ min: 5, max: 20}).withMessage('Username must be between 5 and 20 characters').trim().escape(),
+                  check('first').notEmpty().withMessage('First name is required').trim().escape(),
+                  check('last').notEmpty().withMessage('Last name is required').trim().escape(),
+                  check('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+                  check('passwordConfirm').custom((value, { req }) => {
+                      if (value !== req.body.password) {
+                          throw new Error('Password confirmation does not match password')
+                      }
+                      return true
+                  })
+                 ],
+                 function (req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // Render the form again with error messages and previous non-sensitive inputs
+        return res.render('register', { errors: errors.array(), formData: { first: req.sanitize(req.body.first), last: req.body.last, username: req.body.username, email: req.body.email } })
+    }
+    else {
+    // sanitize first and last names before using them
+    const first = req.sanitize(req.body.first)
+    const last = req.sanitize(req.body.last)
     const plainPassword = req.body.password
     // saving data in database
     bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
@@ -17,22 +50,23 @@ router.post('/registered', function (req, res, next) {
 
         // Prepare SQL to insert the new user (username, first, last, email, hashedPassword)
         const sql = "INSERT INTO users (username, first, last, email, hashedPassword) VALUES (?,?,?,?,?)"
-        const params = [req.body.username, req.body.first, req.body.last, req.body.email, hashedPassword]
+    const params = [req.body.username, first, last, req.body.email, hashedPassword]
 
         // execute sql query
         db.query(sql, params, (err, result) => {
             if (err) {
                 next(err)
             } else {
-                let resultMsg = 'Hello '+ req.body.first + ' '+ req.body.last +' you are now registered!  We will send an email to you at ' + req.body.email + '.\n'
+                let resultMsg = 'Hello '+ first + ' '+ last +' you are now registered!  We will send an email to you at ' + req.body.email + '.\n'
                 resultMsg += 'Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword
                 res.send(resultMsg);
             }
         })
     })
+    }
 }); 
 
-router.get('/list', function(req, res, next) {
+router.get('/list', redirectLogin, function(req, res, next) {
     // Query to get all users (exclude hashedPassword for security)
     const sql = "SELECT id, username, first, last, email FROM users"
     
@@ -49,7 +83,17 @@ router.get('/login', function(req, res, next) {
     res.render('login.ejs')
 });
 
-router.post('/loggedin', function(req, res, next) {
+router.post('/loggedin',
+    [
+        check('username').notEmpty().withMessage('Username is required').trim().escape(),
+        check('password').notEmpty().withMessage('Password is required')
+    ],
+    function(req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.render('login', { errors: errors.array(), formData: { username: req.body.username } })
+    }
+
     const username = req.body.username
     const plainPassword = req.body.password
     
@@ -85,6 +129,8 @@ router.post('/loggedin', function(req, res, next) {
                 db.query(auditSql, [username, 'success', 'Login successful'], (auditErr) => {
                     if (auditErr) console.error('Audit log error:', auditErr)
                 })
+                // Save user session here, when login is successful
+                req.session.userId = req.body.username;
                 res.send('Login successful! Welcome back, ' + user.first + ' ' + user.last + '!')
             } else {
                 // Password does not match - login failed
@@ -99,7 +145,7 @@ router.post('/loggedin', function(req, res, next) {
     })
 });
 
-router.get('/audit', function(req, res, next) {
+router.get('/audit', redirectLogin, function(req, res, next) {
     // Query to get all login audit records ordered by most recent first
     const sql = "SELECT id, username, login_time, status, reason FROM login_audit ORDER BY login_time DESC"
     

@@ -32,16 +32,27 @@
   <body>
     <h1>Search <%=shopData.shopName%></h1>
     <div class="search-form">
+      <% if (typeof errors !== 'undefined' && errors && errors.length) { %>
+        <div style="background:#ffe6e6;padding:10px;border-radius:6px;margin-bottom:12px;">
+          <strong>Please fix the following:</strong>
+          <ul>
+            <% errors.forEach(function(err){ %>
+              <li><%= err.msg %></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+
       <form action="search-result" method="GET">
         <div class="form-group">
           <label for="search-box">What book do you want?</label>
-          <input id="search-box" type="text" name="keyword" required>
+          <input id="search-box" type="text" name="keyword" required value="<%= formData && formData.keyword ? formData.keyword : '' %>">
         </div>
         <div class="form-group">
           <label for="search-type">Search Type:</label>
           <select id="search-type" name="searchType">
-            <option value="advanced">Advanced Search (Partial Match)</option>
-            <option value="basic">Basic Search (Exact Match)</option>
+            <option value="advanced" <%= formData && formData.searchType === 'advanced' ? 'selected' : '' %>>Advanced Search (Partial Match)</option>
+            <option value="basic" <%= formData && formData.searchType === 'basic' ? 'selected' : '' %>>Basic Search (Exact Match)</option>
           </select>
         </div>
         <input type="submit" value="Search">
